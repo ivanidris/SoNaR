@@ -26,13 +26,13 @@ def main():
     yesterday = format_date(today - datetime.timedelta(1))
 
     with open('result.html', 'w') as html:
-        html.write('<html>')
+        html.write('<html><body>')
 
         df = pd.read_csv('keywords.csv')
         df = df[df['Flag'] == 'Use']
 
         for term in df['Term']:
-            query = 'python data analysis \"{}\"'.format(term)
+            query = 'python data analysis {}'.format(term)
             res = get_response(service, query, yesterday,
                                today, config['Custom Search Engine']['cx'])
             html.write('<h1>{}</h1>'.format(query))
@@ -48,7 +48,7 @@ def main():
 
             html.write('</ol>')
 
-        html.write('</html>')
+        html.write('</body></html>')
 
 if __name__ == '__main__':
     main()

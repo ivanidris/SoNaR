@@ -1,22 +1,8 @@
 import feedparser as fp
 import newspaper
-import pandas as pd
 import dautil as dl
-import datetime
-from multiprocessing_on_dill import Pool
 import listparser
 import os
-import numpy as np
-
-
-def select(arr):
-    return np.percentile(arr, 99.5)
-
-
-def get_terms(alist):
-    df = dl.nlp.calc_tfidf(alist)
-
-    return dl.nlp.select_terms(df, method=None, select_func=select)
 
 
 def init_config():
@@ -70,21 +56,4 @@ if __name__ == "__main__":
         for entry in set(rss.entries):
             entries.append(entry)
 
-    with Pool(8) as p:
-        p.map(process_url, entries)
-
-    texts = corpus.get_texts()
-
-    text_terms = get_terms(texts)
-    title_terms = get_terms(corpus.get_titles())
-
-    terms = text_terms.intersection(title_terms) - corpus.get_authors()
-
-    fname = 'keywords.csv'
-    old = set(pd.read_csv(fname)['Term'].values.tolist())
-
-    with open(fname, 'a') as csv_file:
-        for t in terms:
-            if t not in old:
-                ts = datetime.datetime.now().isoformat()
-                csv_file.write(ts + ',' + t + ',Use\n')
+    map(process_url, entries)
