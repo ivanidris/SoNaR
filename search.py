@@ -32,7 +32,7 @@ def main():
         df = df[df['Flag'] == 'Use']
 
         for term in df['Term']:
-            query = 'python data analysis {}'.format(term)
+            query = 'python {}'.format(term)
             res = get_response(service, query, yesterday,
                                today, config['Custom Search Engine']['cx'])
             html.write('<h1>{}</h1>'.format(query))
