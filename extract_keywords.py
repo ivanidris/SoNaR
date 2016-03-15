@@ -2,6 +2,16 @@ import datetime
 import dautil as dl
 import pandas as pd
 import numpy as np
+import wikipedia
+from joblib import Memory
+
+
+memory = Memory(cachedir='.')
+
+
+@memory.cache
+def search_wiki(phrase):
+    return wikipedia.search(phrase)
 
 
 def get_terms(alist, sw):
@@ -29,10 +39,28 @@ terms = text_terms.intersection(title_terms) - corpus.get_authors()
 
 fname = 'keywords.csv'
 old = set(pd.read_csv(fname)['Term'].values.tolist())
+terms = terms - old
+log = dl.log_api.conf_logger(__name__)
+in_wiki = dict()
+
+for t in terms:
+    if not dl.nlp.has_digits(t) \
+            and not dl.nlp.has_duplicates(t):
+        pages = search_wiki('python ' + t)
+
+        if len(pages) > 0:
+            log.debug('Term={0}, Wiki pages={1}'.format(t, pages))
+            in_wiki[t] = len(pages)
+        else:
+            log.debug('Term={0} Not found in Wiki'.format(t))
+
+limit = np.percentile(list(in_wiki.values()), 50)
+selected = set([term for term, count in in_wiki.items()
+                if count < limit])
+
+log.debug('Selected={0}'.format(len(selected)))
 
 with open(fname, 'a') as csv_file:
-    for t in terms:
-        if t not in old and not dl.nlp.has_digits(t) \
-                and not dl.nlp.has_duplicates(t):
-            ts = datetime.datetime.now().isoformat()
-            csv_file.write(ts + ',' + t + ',Use\n')
+    for s in selected:
+        ts = datetime.datetime.now().isoformat()
+        csv_file.write(ts + ',' + s + ',Use\n')

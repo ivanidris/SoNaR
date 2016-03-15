@@ -24,6 +24,7 @@ def main():
 
     today = datetime.datetime.now()
     yesterday = format_date(today - datetime.timedelta(1))
+    hates = set(pd.read_csv('exclude_urls.csv')['URL'].values)
 
     with open('result.html', 'w') as html:
         html.write('<html><body>')
@@ -43,7 +44,10 @@ def main():
             html.write('<ol>')
 
             for i in res['items']:
-                html.write('<li><a href="{1}">{0}</a></li>'.format(
+                if i['link'] in hates:
+                    continue
+
+                html.write('<li>{0} <a href="{1}">link</a></li>'.format(
                     i['htmlSnippet'], i['link']))
 
             html.write('</ol>')
