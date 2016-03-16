@@ -48,12 +48,8 @@ if __name__ == "__main__":
 
     corpus = dl.nlp.WebCorpus('sonar_corpus')
 
-    entries = []
-
     for url in set(urls):
         rss = fp.parse(url)
 
         for entry in set(rss.entries):
-            entries.append(entry)
-
-    map(process_url, entries)
+            process_url(entry)

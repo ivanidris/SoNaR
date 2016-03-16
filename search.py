@@ -3,6 +3,8 @@ from urllib.parse import quote_plus
 import datetime
 import configparser
 import pandas as pd
+from langdetect import detect
+import dautil as dl
 
 
 def format_date(date):
@@ -17,6 +19,7 @@ def get_response(service, query, yest, today, cx):
 
 
 def main():
+    log = dl.log_api.conf_logger(__name__)
     config = configparser.ConfigParser()
     config.read('config.ini')
     service = build("customsearch", "v1",
@@ -45,6 +48,10 @@ def main():
 
             for i in res['items']:
                 if i['link'] in hates:
+                    continue
+
+                if detect(i['htmlSnippet']) != 'en':
+                    log.debug('Not English: {0}'.format(i['htmlSnippet']))
                     continue
 
                 html.write('<li>{0} <a href="{1}">link</a></li>'.format(

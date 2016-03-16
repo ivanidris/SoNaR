@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import wikipedia
 from joblib import Memory
+import pickle
 
 
 memory = Memory(cachedir='.')
@@ -36,6 +37,9 @@ text_terms = get_terms(texts, sw)
 title_terms = get_terms(corpus.get_titles(), sw)
 
 terms = text_terms.intersection(title_terms) - corpus.get_authors()
+
+with open('terms.pkl', 'wb') as f:
+    pickle.dump(terms, f)
 
 fname = 'keywords.csv'
 old = set(pd.read_csv(fname)['Term'].values.tolist())
