@@ -50,6 +50,10 @@ def main():
                 if i['link'] in hates:
                     continue
 
+                # Avoid CVs with buzzwords
+                if 'resume' in i['link']:
+                    continue
+
                 if detect(i['htmlSnippet']) != 'en':
                     log.debug('Not English: {0}'.format(i['htmlSnippet']))
                     continue

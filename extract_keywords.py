@@ -23,7 +23,9 @@ def get_terms(alist, sw):
 
 
 corpus = dl.nlp.WebCorpus('sonar_corpus')
+saved = dl.nlp.WebCorpus('sonar_bookmarks')
 texts = corpus.get_texts()
+texts.extend(saved.get_texts())
 
 sw = dl.nlp.common_unigrams()
 unigrams_tfidf = dl.nlp.calc_tfidf(texts, ngram_range=None)
@@ -34,7 +36,9 @@ sw = sw.union(set(['blog', 'podcast', 'webinar',
                    'tweets', 'nba', 'nfl', 'facebook', 'pinterest']))
 
 text_terms = get_terms(texts, sw)
-title_terms = get_terms(corpus.get_titles(), sw)
+titles = corpus.get_titles()
+titles = titles.union(saved.get_titles())
+title_terms = get_terms(titles, sw)
 
 terms = text_terms.intersection(title_terms) - corpus.get_authors()
 

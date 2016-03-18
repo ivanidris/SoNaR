@@ -37,7 +37,9 @@ def write_file():
         for row in res:
             html.write(row['html'])
 
-        html.write('</ol></body></html>')
+        html.write('</ol>')
+        html.write('<p>Created {}</p>'.format(datetime.now()))
+        html.write('</body></html>')
 
 
 def search():
@@ -93,7 +95,7 @@ def search():
                                          search_date=datetime.now(),
                                          html=html),
                                     ['query', 'html'])
-        if searches == 100:
+        if searches == 150:
             break
 
 

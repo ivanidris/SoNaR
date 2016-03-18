@@ -3,14 +3,8 @@ import newspaper
 import dautil as dl
 import listparser
 import os
-
-
-def init_config():
-    config = newspaper.Config()
-    config.fetch_images = False
-    config.verbose = True
-
-    return config
+import core
+import pandas as pd
 
 
 def process_url(entry):
@@ -18,10 +12,7 @@ def process_url(entry):
         if entry.link in corpus.url_set:
             return
 
-        a = newspaper.Article(entry.link, config)
-        a.download()
-        a.parse()
-
+        a = core.parse_article(entry.link)
         corpus.store_text(entry.title.replace(' ', '_'),
                           a.text, entry.link, entry.title,
                           " ".join([author.lower()
@@ -37,6 +28,10 @@ if __name__ == "__main__":
             'http://planetpython.org/rss20.xml',
             'http://dsguide.biz/reader/feeds/posts']
 
+    df = pd.read_csv('feeds.csv')
+    df = df[df['Flag'] == 'Use']
+    urls.extend(df['URL'].values)
+
     for f in os.listdir('opml'):
         if f.endswith('opml'):
             fname = os.path.join('opml', f)
@@ -44,7 +39,7 @@ if __name__ == "__main__":
             urls.extend([feed.url for feed in parsed_opml.feeds])
 
     log = dl.log_api.conf_logger(__name__)
-    config = init_config()
+    config = core.init_config()
 
     corpus = dl.nlp.WebCorpus('sonar_corpus')
 
