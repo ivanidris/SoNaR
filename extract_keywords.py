@@ -15,8 +15,11 @@ def search_wiki(phrase):
     return wikipedia.search(phrase)
 
 
-def get_terms(alist, sw):
+def get_terms(alist, sw, save=False, fname=None):
     df = dl.nlp.calc_tfidf(alist, sw)
+
+    if save:
+        df.to_pickle(fname)
 
     return dl.nlp.select_terms(df, method=None,
                                select_func=lambda x: np.percentile(x, 50))
@@ -29,16 +32,17 @@ texts.extend(saved.get_texts())
 
 sw = dl.nlp.common_unigrams()
 unigrams_tfidf = dl.nlp.calc_tfidf(texts, ngram_range=None)
+
 all_unigrams = set(unigrams_tfidf['term'].values.tolist())
 uncommon = dl.nlp.select_terms(unigrams_tfidf)
 sw = sw.union(all_unigrams - uncommon)
 sw = sw.union(set(['blog', 'podcast', 'webinar',
                    'tweets', 'nba', 'nfl', 'facebook', 'pinterest']))
 
-text_terms = get_terms(texts, sw)
+text_terms = get_terms(texts, sw, save=True, fname='text_terms.pkl')
 titles = corpus.get_titles()
 titles = titles.union(saved.get_titles())
-title_terms = get_terms(titles, sw)
+title_terms = get_terms(titles, sw, save=True, fname='title_terms.pkl')
 
 terms = text_terms.intersection(title_terms) - corpus.get_authors()
 

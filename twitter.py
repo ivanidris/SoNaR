@@ -1,11 +1,11 @@
 from nltk.twitter import Query
 from nltk.twitter import credsfromfile
-from langdetect import detect
 from datetime import datetime
-import dataset
 import pickle
 from datetime import timedelta
 import dautil as dl
+import pandas as pd
+import core
 
 
 def hrefs_from_text(str):
@@ -45,11 +45,14 @@ def write_file():
 def search():
     oauth = credsfromfile()
     client = Query(**oauth)
+    df = pd.read_csv('twitter_users.csv')
+    df = df[df['Flag'] == 'Use']
 
-    terms = set()
+    terms = set(['@' + u.replace('https://twitter.com/', '')
+                 for u in df['URL'].values])
 
     with open('terms.pkl', 'rb') as f:
-        terms = pickle.load(f)
+        terms = terms.union(pickle.load(f))
 
     searches = 0
 
@@ -64,7 +67,7 @@ def search():
             if hours_from_now(row['search_date']) < 24:
                 continue
 
-        tweets = client.search_tweets(keywords=term + ' http -RT',
+        tweets = client.search_tweets(keywords=term + ' python http -RT',
                                       lang='en', limit=5)
 
         for t in tweets:
@@ -79,13 +82,21 @@ def search():
             if hours_from_now(dt) > 24:
                 continue
 
-            if detect(text) != 'en':
+            if core.not_english(text):
                 log.debug('Not english: {}'.format(text))
                 continue
 
             log.debug('Searching for {}'.format(term))
             uname = t['user']['screen_name']
             uname_html = '<a href="https://twitter.com/{0}">{0}</a>'
+            users = [v.replace('https://twitter.com/', '')
+                     for v in pd.read_csv('twitter_users.csv')['URL'].values]
+
+            with open('twitter_users.csv', 'a') as users_csv:
+
+                if uname not in set(users):
+                    users_csv.write('{0},{1},Recommended\n'.format(
+                        datetime.now(), 'https://twitter.com/' + uname))
 
             html = li_html.format(uname_html.format(uname), t['created_at'],
                                   t['favorite_count'], t['retweet_count'],
@@ -101,7 +112,7 @@ def search():
 
 if __name__ == "__main__":
     log = dl.log_api.conf_logger(__name__)
-    db = dataset.connect('sqlite:///sonar.db')
+    db = core.connect()
     twitter_searches = db['twitter_searches']
     search()
     write_file()

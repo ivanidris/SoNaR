@@ -1,4 +1,35 @@
 import newspaper
+from langdetect import detect
+import dataset
+import numpy as np
+from datetime import date
+
+
+def check_url_date(url):
+    today = date.today()
+    today.strftime('%Y %m %b')
+    year, mm, mmm = today.strftime('%Y %m %b').lower().split()
+
+    return year in url and (mm in url or mmm in url)
+
+
+class TfidfLottery():
+    def __init__(self, df):
+        self.df = df
+        self.terms = df['term'].values
+        self.prob = df['tfidf'].values
+        self.prob = self.prob/self.prob.sum()
+
+    def draw(self, size=3):
+        return set(np.random.choice(self.terms, size=size, p=self.prob))
+
+
+def connect():
+    return dataset.connect('sqlite:///sonar.db')
+
+
+def not_english(text):
+    return detect(text) != 'en'
 
 
 def init_config():

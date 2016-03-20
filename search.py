@@ -3,8 +3,8 @@ from urllib.parse import quote_plus
 import datetime
 import configparser
 import pandas as pd
-from langdetect import detect
 import dautil as dl
+import core
 
 
 def format_date(date):
@@ -28,6 +28,8 @@ def main():
     today = datetime.datetime.now()
     yesterday = format_date(today - datetime.timedelta(1))
     hates = set(pd.read_csv('exclude_urls.csv')['URL'].values)
+    db = core.connect()
+    cse_searches = db['cse_searches']
 
     with open('result.html', 'w') as html:
         html.write('<html><body>')
@@ -54,12 +56,18 @@ def main():
                 if 'resume' in i['link']:
                     continue
 
-                if detect(i['htmlSnippet']) != 'en':
+                if cse_searches.find_one(link=i['link']):
+                    continue
+
+                if core.not_english(i['htmlSnippet']):
                     log.debug('Not English: {0}'.format(i['htmlSnippet']))
                     continue
 
-                html.write('<li>{0} <a href="{1}">link</a></li>'.format(
+                html.write('<li>{0} <a href="{1}">{1}</a></li>'.format(
                     i['htmlSnippet'], i['link']))
+                cse_searches.insert(dict(search_date=datetime.datetime.now(),
+                                         html_snippet=i['htmlSnippet'],
+                                         link=i['link']))
 
             html.write('</ol>')
 
