@@ -56,10 +56,7 @@ if __name__ == "__main__":
     bing_searches = db['bing_searches']
 
     with open('bing.html', 'w') as html:
-        df = None
         html.write('<html><body>')
-
-        df = pd.read_pickle('title_terms.pkl')
 
         keywords = pd.read_csv('keywords.csv')['Term'].values[-100:]
         flags = pd.read_csv('keywords.csv')['Flag'].values[-100:]
