@@ -3,6 +3,17 @@ from langdetect import detect
 import dataset
 import numpy as np
 from datetime import date
+import dautil as dl
+
+
+def get_terms(alist, sw, save=False, fname=None):
+    df = dl.nlp.calc_tfidf(alist, sw)
+
+    if save:
+        df.to_pickle(fname)
+
+    return dl.nlp.select_terms(df, method=None,
+                               select_func=lambda x: np.percentile(x, 50))
 
 
 def check_url_date(url):

@@ -5,6 +5,7 @@ import numpy as np
 import wikipedia
 from joblib import Memory
 import pickle
+import core
 
 
 memory = Memory(cachedir='.')
@@ -13,16 +14,6 @@ memory = Memory(cachedir='.')
 @memory.cache
 def search_wiki(phrase):
     return wikipedia.search(phrase)
-
-
-def get_terms(alist, sw, save=False, fname=None):
-    df = dl.nlp.calc_tfidf(alist, sw)
-
-    if save:
-        df.to_pickle(fname)
-
-    return dl.nlp.select_terms(df, method=None,
-                               select_func=lambda x: np.percentile(x, 50))
 
 
 corpus = dl.nlp.WebCorpus('sonar_corpus')
@@ -39,10 +30,10 @@ sw = sw.union(all_unigrams - uncommon)
 sw = sw.union(set(['blog', 'podcast', 'webinar',
                    'tweets', 'nba', 'nfl', 'facebook', 'pinterest']))
 
-text_terms = get_terms(texts, sw, save=True, fname='text_terms.pkl')
+text_terms = core.get_terms(texts, sw, save=True, fname='text_terms.pkl')
 titles = corpus.get_titles()
 titles = titles.union(saved.get_titles())
-title_terms = get_terms(titles, sw, save=True, fname='title_terms.pkl')
+title_terms = core.get_terms(titles, sw, save=True, fname='title_terms.pkl')
 
 terms = text_terms.intersection(title_terms) - corpus.get_authors()
 
