@@ -41,8 +41,9 @@ def parse_results(json, flag):
 
 
 def handle_query(keyword, flag):
-    json = search_bing('python ' + keyword)
-    html.write('<h2>{0} Flag={1}</h2>'.format(keyword, flag))
+    full_query = 'python {0} {1} {2} {3}'.format(keyword, year, mmm, op)
+    json = search_bing(full_query)
+    html.write('<h2>{0} Flag={1}</h2>'.format(full_query, flag))
     html.write('<ol>')
     parse_results(json, flag)
     html.write('</ol>')
@@ -54,14 +55,24 @@ if __name__ == "__main__":
     API_KEY = config['Bing']['key']
     db = core.connect()
     bing_searches = db['bing_searches']
+    operators = ['site:slideshare.net', 'site:speakerdeck.com',
+                 'site:blogspot.com', 'site:github.io']
+    op = operators[datetime.now().day % (len(operators) + 1)]
+    year, _, mmm = core.get_date_tuple()
 
     with open('bing.html', 'w') as html:
         html.write('<html><body>')
 
-        keywords = pd.read_csv('keywords.csv')['Term'].values[-100:]
-        flags = pd.read_csv('keywords.csv')['Flag'].values[-100:]
+        df = pd.read_csv('keywords.csv')
+        keywords = df[df['Flag'] == 'Use']['Term'].values
 
-        for keyword, flag in zip(keywords, flags):
-            handle_query(keyword, flag)
+        for keyword in keywords:
+            handle_query(keyword, 'Use')
+
+        df = pd.read_csv('code_keywords.csv')
+        keywords = df[df['Flag'] == 'Use']['term'].values
+
+        for keyword in keywords:
+            handle_query(keyword, 'Use')
 
         html.write('</body></html>')

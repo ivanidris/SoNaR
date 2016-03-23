@@ -68,7 +68,7 @@ def search():
                 continue
 
         tweets = client.search_tweets(keywords=term + ' python http -RT',
-                                      lang='en', limit=5)
+                                      lang='en', limit=15)
 
         for t in tweets:
             if int(t['favorite_count']) == 0:

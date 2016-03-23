@@ -16,10 +16,15 @@ def get_terms(alist, sw, save=False, fname=None):
                                select_func=lambda x: np.percentile(x, 50))
 
 
-def check_url_date(url):
+def get_date_tuple():
     today = date.today()
     today.strftime('%Y %m %b')
-    year, mm, mmm = today.strftime('%Y %m %b').lower().split()
+
+    return today.strftime('%Y %m %b').lower().split()
+
+
+def check_url_date(url):
+    year, mm, mmm = get_date_tuple()
 
     return year in url and (mm in url or mmm in url)
 
