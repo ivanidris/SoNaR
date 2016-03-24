@@ -57,7 +57,7 @@ if __name__ == "__main__":
     bing_searches = db['bing_searches']
     operators = ['site:slideshare.net', 'site:speakerdeck.com',
                  'site:blogspot.com', 'site:github.io']
-    op = operators[datetime.now().day % (len(operators) + 1)]
+    op = operators[datetime.now().day % len(operators)]
     year, _, mmm = core.get_date_tuple()
 
     with open('bing.html', 'w') as html:
