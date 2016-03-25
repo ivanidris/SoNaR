@@ -27,7 +27,7 @@ def hours_from_now(dt):
 
 def write_file():
     with open('twitter.html', 'w') as html:
-        html.write('<html><body><ol>')
+        html.write('<html><body><ol>\n')
 
         yesterday = datetime.now() - timedelta(1)
         res = db.query('SELECT html FROM twitter_searches \
@@ -35,9 +35,9 @@ def write_file():
                        format(yesterday))
 
         for row in res:
-            html.write(row['html'])
+            html.write('<li>{}</li>\n'.format(row['html']))
 
-        html.write('</ol>')
+        html.write('</ol>\n')
         html.write('<p>Created {}</p>'.format(datetime.now()))
         html.write('</body></html>')
 
@@ -45,19 +45,20 @@ def write_file():
 def search():
     oauth = credsfromfile()
     client = Query(**oauth)
-    df = pd.read_csv('twitter_users.csv')
-    df = df[df['Flag'] == 'Use']
+    df = pd.read_sql('SELECT URL FROM twitter_users',
+                     db.executable.raw_connection())
 
-    terms = set(['@' + u.replace('https://twitter.com/', '')
+    users = set([u.replace('https://twitter.com/', '')
                  for u in df['URL'].values])
+    terms = set(['@' + u for u in users])
 
     with open('terms.pkl', 'rb') as f:
         terms = terms.union(pickle.load(f))
 
     searches = 0
 
-    li_html = '<li>name={0} created={1} favorited={2} retweeted={3} \
-        {4} query={5}</li>'
+    li_html = 'name={0} created={1} favorited={2} retweeted={3} \
+        {4} query={5}'
 
     for term in terms:
         searches += 1
@@ -68,7 +69,7 @@ def search():
                 continue
 
         tweets = client.search_tweets(keywords=term + ' python http -RT',
-                                      lang='en', limit=15)
+                                      lang='en')
 
         for t in tweets:
             if int(t['favorite_count']) == 0:
@@ -89,14 +90,11 @@ def search():
             log.debug('Searching for {}'.format(term))
             uname = t['user']['screen_name']
             uname_html = '<a href="https://twitter.com/{0}">{0}</a>'
-            users = [v.replace('https://twitter.com/', '')
-                     for v in pd.read_csv('twitter_users.csv')['URL'].values]
 
-            with open('twitter_users.csv', 'a') as users_csv:
-
-                if uname not in set(users):
-                    users_csv.write('{0},{1},Recommended\n'.format(
-                        datetime.now(), 'https://twitter.com/' + uname))
+            if uname not in set(users):
+                db['twitter_users'].insert(
+                    dict(Flag='Recommended', Date=datetime.now(),
+                         URL='https://twitter.com/' + uname))
 
             html = li_html.format(uname_html.format(uname), t['created_at'],
                                   t['favorite_count'], t['retweet_count'],

@@ -4,7 +4,6 @@ from requests.auth import HTTPBasicAuth
 import configparser
 import core
 from datetime import datetime
-import pandas as pd
 
 
 def search_bing(query, top=50):
@@ -63,14 +62,14 @@ if __name__ == "__main__":
     with open('bing.html', 'w') as html:
         html.write('<html><body>')
 
-        df = pd.read_csv('keywords.csv')
-        keywords = df[df['Flag'] == 'Use']['Term'].values
+        keywords = [row['Term'] for row in db['keywords']
+                    if row['Flag'] == 'Use']
 
         for keyword in keywords:
             handle_query(keyword, 'Use')
 
-        df = pd.read_csv('code_keywords.csv')
-        keywords = df[df['Flag'] == 'Use']['term'].values
+        keywords = [row['term'] for row in db['code_keywords']
+                    if row['Flag'] == 'Use']
 
         for keyword in keywords:
             handle_query(keyword, 'Use')

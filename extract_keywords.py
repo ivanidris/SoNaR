@@ -1,6 +1,5 @@
 import datetime
 import dautil as dl
-import pandas as pd
 import numpy as np
 import wikipedia
 from joblib import Memory
@@ -40,8 +39,9 @@ terms = text_terms.intersection(title_terms) - corpus.get_authors()
 with open('terms.pkl', 'wb') as f:
     pickle.dump(terms, f)
 
-fname = 'keywords.csv'
-old = set(pd.read_csv(fname)['Term'].values.tolist())
+tname = 'keywords'
+db = core.connect()
+old = set([row['Term'] for row in db[tname].all()])
 terms = terms - old
 log = dl.log_api.conf_logger(__name__)
 in_wiki = dict()
@@ -61,9 +61,8 @@ limit = np.percentile(list(in_wiki.values()), 50)
 selected = set([term for term, count in in_wiki.items()
                 if count < limit])
 
-log.debug('Selected={0}'.format(len(selected)))
+log.debug('Selected={0} \n{1}'.format(len(selected), selected))
 
-with open(fname, 'a') as csv_file:
-    for s in selected:
-        ts = datetime.datetime.now().isoformat()
-        csv_file.write(ts + ',' + s + ',Use\n')
+for s in selected:
+    ts = datetime.datetime.now().isoformat()
+    db[tname].insert(dict(Added=ts, Term=s, Flag='Recommended'))

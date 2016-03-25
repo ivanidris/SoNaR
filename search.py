@@ -56,18 +56,18 @@ def main():
     with open('result.html', 'w') as html:
         html.write('<html><body>')
 
-        df = pd.read_csv('keywords.csv')
-        df = df[df['Flag'] == 'Use']
+        terms = [row['Term'] for row in db['keywords']
+                 if row['Flag'] == 'Use']
 
-        for term in df['Term']:
+        for term in terms:
             query = 'python {}'.format(term)
             process_query(html, query)
 
-        df = pd.read_csv('code_keywords.csv')
-        df = df[df['Flag'] == 'Use']
-
         # Some confusion around Term v term
-        for term in df['term']:
+        terms = [row['term'] for row in db['code_keywords']
+                 if row['Flag'] == 'Use']
+
+        for term in terms:
             query = 'python {}'.format(term)
             process_query(html, query)
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
     today = datetime.datetime.now()
     yesterday = format_date(today - datetime.timedelta(1))
-    hates = set(pd.read_csv('exclude_urls.csv')['URL'].values)
     db = core.connect()
+    hates = set([row['URL'] for row in db['exclude_urls'].all()])
     cse_searches = db['cse_searches']
     main()

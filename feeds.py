@@ -28,9 +28,9 @@ if __name__ == "__main__":
             'http://planetpython.org/rss20.xml',
             'http://dsguide.biz/reader/feeds/posts']
 
-    df = pd.read_csv('feeds.csv')
-    df = df[df['Flag'] == 'Use']
-    urls.extend(df['URL'].values)
+    db = core.connect()
+    urls.extend([f['URL'] for f in db['feeds'].all()
+                 if f['Flag'] == 'Use'])
 
     for f in os.listdir('opml'):
         if f.endswith('opml'):
