@@ -2,7 +2,6 @@ from googleapiclient.discovery import build
 from urllib.parse import quote_plus
 import datetime
 import configparser
-import pandas as pd
 import dautil as dl
 import core
 
@@ -31,6 +30,9 @@ def process_query(html, query):
 
         if core.not_english(i['htmlSnippet']):
             log.debug('Not English: {0}'.format(i['htmlSnippet']))
+            continue
+
+        if core.is_domain_excluded(i['link'], bad_domains):
             continue
 
         html.write('<li>{0} <a href="{1}">{1}</a></li>'.format(
@@ -84,5 +86,6 @@ if __name__ == '__main__':
     yesterday = format_date(today - datetime.timedelta(1))
     db = core.connect()
     hates = set([row['URL'] for row in db['exclude_urls'].all()])
+    bad_domains = core.get_excluded_domains(db)
     cse_searches = db['cse_searches']
     main()

@@ -6,6 +6,18 @@ from datetime import date
 import dautil as dl
 
 
+def get_excluded_domains(db):
+    return set([row['url'] for row in db['exclude_domains'].all()])
+
+
+def is_domain_excluded(url, domains):
+    for d in domains:
+        if d in url:
+            return True
+
+    return False
+
+
 def get_terms(alist, sw, save=False, fname=None):
     df = dl.nlp.calc_tfidf(alist, sw)
 

@@ -23,10 +23,16 @@ def search_bing(query, top=50):
 
 def parse_results(json, flag):
     for r in json['d']['results']:
+        if not core.check_url_date(r['Url']):
+            continue
+
         if core.not_english(r['Title']) or core.not_english(r['Description']):
             continue
 
         if bing_searches.find_one(url=r['Url']):
+            continue
+
+        if core.is_domain_excluded(r['Url'], bad_domains):
             continue
 
         html.write('<li><b>{0}</b><br/> {1} <a href="{2}">{2}</a></li>'.format(
@@ -53,6 +59,7 @@ if __name__ == "__main__":
     config.read('config.ini')
     API_KEY = config['Bing']['key']
     db = core.connect()
+    bad_domains = core.get_excluded_domains(db)
     bing_searches = db['bing_searches']
     operators = ['site:slideshare.net', 'site:speakerdeck.com',
                  'site:blogspot.com', 'site:github.io']

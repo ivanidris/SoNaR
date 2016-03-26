@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import flask_admin as admin
 from flask_admin.contrib import sqla
 from jinja2 import Markup
-from flask_admin.contrib.sqla import ModelView
+from datetime import datetime
 
 
 # Create application
@@ -58,6 +58,14 @@ class CodeKeyword(db.Model):
     term = db.Column(db.Text)
     tfidf = db.Column(db.Text)
     Flag = db.Column(db.Text)
+
+
+class ExcludeDomain(db.Model):
+    __tablename__ = 'exclude_domains'
+
+    id = db.Column(db.Integer, primary_key=True)
+    added = db.Column(db.DateTime, default=datetime.utcnow)
+    url = db.Column(db.Text, unique=True)
 
 
 class ExcludeUrl(db.Model):
@@ -129,7 +137,7 @@ class BingSearchAdmin(sqla.ModelView):
     column_default_sort = ('search_date', True)
 
 admin.add_view(BingSearchAdmin(BingSearch, db.session))
-admin.add_view(ModelView(CodeKeyword, db.session))
+admin.add_view(sqla.ModelView(CodeKeyword, db.session))
 
 
 class CseSearchAdmin(sqla.ModelView):
@@ -144,8 +152,14 @@ class CseSearchAdmin(sqla.ModelView):
     column_default_sort = ('search_date', True)
 
 admin.add_view(CseSearchAdmin(CseSearch, db.session))
-admin.add_view(ModelView(ExcludeUrl, db.session))
-admin.add_view(ModelView(Feed, db.session))
+
+
+class ExcludeDomainAdmin(sqla.ModelView):
+    form_excluded_columns = ['added']
+
+admin.add_view(ExcludeDomainAdmin(ExcludeDomain, db.session))
+admin.add_view(sqla.ModelView(ExcludeUrl, db.session))
+admin.add_view(sqla.ModelView(Feed, db.session))
 
 
 class KeywordAdmin(sqla.ModelView):
@@ -174,4 +188,5 @@ class TwitterUserAdmin(sqla.ModelView):
 admin.add_view(TwitterUserAdmin(TwitterUser, db.session))
 
 if __name__ == '__main__':
+    db.create_all()
     app.run(debug=True)
